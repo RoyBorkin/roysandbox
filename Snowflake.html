@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Snowflake with L-System</title>
+    <style>
+        body { text-align: center; padding: 20px; font-family: Arial, sans-serif; }
+        canvas { border: 1px solid #000; margin-top: 20px; }
+        label { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Generative Snowflake with L-System</h1>
+    <div>
+        <label for="iterations">Iterations: </label>
+        <input type="number" id="iterations" value="4" min="1" max="10">
+    </div>
+    <div>
+        <label for="angle">Angle: </label>
+        <input type="number" id="angle" value="60" min="0" max="360">
+    </div>
+    <div>
+        <label for="axiom">Axiom: </label>
+        <input type="text" id="axiom" value="F--F--F">
+    </div>
+    <button onclick="generateSnowflake()">Generate Snowflake</button>
+    <canvas id="canvas" width="500" height="500"></canvas>
+
+    <script>
+        // repo: https://github.com/kbhadury/LSystem
+        function generateSnowflake() {
+            const axiom = document.getElementById('axiom').value;
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const angle = parseInt(document.getElementById('angle').value);
+            
+            const rules = {
+                "F": "F--F++F--F",  // The snowflake rule for L-system
+				"G": "F--F--F--F--F",
+				"A": "A--A++A--A",
+				"B": "A--A--A--A--A",
+				"S": "+B-A-B+",
+				"R": "-A+B+A-"
+            };
+
+            let result = axiom;
+
+            // Generate the L-system sequence
+            for (let i = 0; i < iterations; i++) {
+                let next = "";
+                for (let char of result) {
+                    next += rules[char] || char;  // Apply the rule if it exists
+                }
+                result = next;
+            }
+
+            // Draw the snowflake
+            drawSnowflake(result, angle);
+        }
+
+        function drawSnowflake(instructions, angle) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
+
+            const length = 10; // Step size for each forward movement
+            let x = canvas.width / 2, y = canvas.height / 2;
+            let dir = 0;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+
+            for (let char of instructions) {
+                if (char === "F") {
+                    x += length * Math.cos(dir * Math.PI / 180);
+                    y += length * Math.sin(dir * Math.PI / 180);
+                    ctx.lineTo(x, y);
+				} else if (char === "A") {
+                    x += length * 2 * Math.cos(dir * Math.PI / 180);
+                    y += length * 2 * Math.sin(dir * Math.PI / 180);
+                    ctx.lineTo(x, y);
+                } else if (char === "+") {
+                    dir += angle;
+                } else if (char === "-") {
+                    dir -= angle;
+                }
+            }
+
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
