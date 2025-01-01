@@ -9,11 +9,72 @@
         canvas { border: 1px solid #000; margin-top: 20px; }
         label { margin-right: 10px; }
     </style>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/csg.js@0.0.3/dist/csg.min.js"></script>
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
+	<!-- <script src="https://cdn.jsdelivr.net/npm/csg.js@0.0.3/dist/csg.min.js"></script> -->
 	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/csg/0.0.3/csg.min.js"></script> -->
 	<!-- <script src="https://cdn.jsdelivr.net/npm/@jscad/csg"></script> -->
-	<script src="csg.min.js"></script>
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/csg/0.8.0/csg.min.js"></script> -->
+	<!-- <script src="https://rawgit.com/evanw/csg.js/master/csg.js"></script> -->
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/csg.js/0.3.0/csg.min.js"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+	<!-- <script src="OBJExporter.js"></script> -->
+	<!-- <script src="csg.min.js"></script> -->
+	<script type="module">
+        import { OBJExporter } from './OBJExporter.js';
+
+        // Function to generate a hexagon geometry
+        function generateHexagonGeometry(radius) {
+            const geometry = new THREE.CircleGeometry(radius, 6);  // 6 sides for hexagon
+            geometry.rotateX(Math.PI / 2);  // Rotate the geometry to lie flat on the XY plane
+            return geometry;
+        }
+
+        // Function to extrude the hexagon into 3D space
+        function extrudeHexagon(geometry, height) {
+            const extrudeSettings = {
+                depth: height,  // Depth of the extrusion
+                bevelEnabled: false  // No bevels
+            };
+            const extrudeGeometry = new THREE.ExtrudeGeometry(geometry, extrudeSettings);
+            return extrudeGeometry;
+        }
+
+        // Function to export the 3D model to OBJ format
+        function exportOBJ() {
+            // Create a scene
+            const scene = new THREE.Scene();
+
+            // Create a camera and set the position
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            // Create a hexagon geometry and extrude it to 3D
+            const hexagonGeometry = generateHexagonGeometry(10);  // Hexagon radius = 10
+            const hexagonMesh = new THREE.Mesh(extrudeHexagon(hexagonGeometry, 5), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+
+            // Add the hexagon mesh to the scene
+            scene.add(hexagonMesh);
+
+            // Create a WebGL renderer
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Render the scene
+            renderer.render(scene, camera);
+
+            // Export the model to OBJ
+            const exporter = new OBJExporter();
+            const objData = exporter.parse(hexagonMesh);
+
+            // Download the OBJ file
+            const blob = new Blob([objData], { type: 'application/octet-stream' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'hexagon.obj';
+            link.click();
+        }
+    </script>
 </head>
 <body>
     <h1>Generative Snowflake Spinning-Top with L-System</h1>
@@ -44,11 +105,14 @@
 	<h1> </h1>
     <div>
         <button onclick="generateSnowflake()">Generate Snowflake</button>
-        <button onclick="exportOBJ()">Export OBJ</button>
+        <!-- <button onclick="exportOBJ()">Export OBJ</button> -->
         <button onclick="exportDXF()">Export DXF</button>
         <button onclick="exportSVG()">Export SVG</button>
         <button onclick="exportCentre()">Centre Export</button>
     </div>
+	<div>
+		<button onclick="exportOBJ()">Export OBJ</button>
+	</div>
 	<h1> </h1>
 	<div>
         <body>Face Thickness (mm):</body>
@@ -67,7 +131,14 @@
             
             const rules = {
                 "F": "F--F++F--F",
-                "A": "A--A++A--A"
+				"G": "F--F--F--F--F",
+				"A": "A--A++A--A",
+				"B": "A--A--A--A--A",
+				"S": "+B-A-B+",
+				"R": "-A+B+A-",
+				"X": "X--X++X--X",
+				"Y": "X--X--X--X",
+				"T": "T--T++T--T"
             };
 
             let result = axiom;
@@ -106,6 +177,14 @@
 				} else if (char === "A") {
 					x += (length / 2) * Math.cos(dir * Math.PI / 180);
 					y += (length / 2) * Math.sin(dir * Math.PI / 180);
+					points.push([x, y]);
+				} else if (char === "X") {
+					x += (length * 5) * Math.cos(dir * Math.PI / 180);
+					y += (length * 5) * Math.sin(dir * Math.PI / 180);
+					points.push([x, y]);
+				} else if (char === "T") {
+					x += (length * 5) * Math.cos(dir * Math.PI / 120);
+					y += (length * 5) * Math.sin(dir * Math.PI / 120);
 					points.push([x, y]);
 				} else if (char === "+") {
 					dir += angle;
@@ -305,7 +384,7 @@
             link.click();
         }
 		
-		/*function exportOBJ() {
+		/* function exportOBJ() {
 			const extrusionHeight = parseFloat(document.getElementById('extrusion').value);
 			const circleDiameter = parseFloat(document.getElementById('circleDiameter').value);
 			const hexagonRadius = circleDiameter / 2;
@@ -404,47 +483,63 @@
 			link.href = URL.createObjectURL(blob);
 			link.click();
 		} */
+		
+		
+		
+		
+		// Function to generate a hexagon geometry
+        function generateHexagonGeometry(radius) {
+            const geometry = new THREE.CircleGeometry(radius, 6);  // 6 sides for hexagon
+            geometry.rotateX(Math.PI / 2);  // Rotate the geometry to lie flat on the XY plane
+            return geometry;
+        }
 
-		async function exportOBJ() {
-            const extrusionHeight = parseFloat(document.getElementById('extrusion').value);
-            const circleDiameter = parseFloat(document.getElementById('circleDiameter').value);
-            const circleRadius = circleDiameter / 2;
-            const holeHeight = extrusionHeight + 2; // Hole extends 1mm above and below
+        // Function to extrude the hexagon into 3D space
+        function extrudeHexagon(geometry, height) {
+            const extrudeSettings = {
+                depth: height,  // Depth of the extrusion
+                bevelEnabled: false  // No bevels
+            };
+            const extrudeGeometry = new THREE.ExtrudeGeometry(geometry, extrudeSettings);
+            return extrudeGeometry;
+        }
 
-            // Check if CSG is loaded properly
-            if (typeof CSG === 'undefined') {
-                alert('Error: CSG.js is not loaded. Please check the library URL.');
-                return;
-            }
+        // Function to export the 3D model to OBJ format
+        function exportOBJ() {
+            // Create a scene
+            const scene = new THREE.Scene();
 
-            // Generate Snowflake Geometry
-            let snowflake = new CSG.Cylinder({
-                start: [0, 0, 0],
-                end: [0, 0, extrusionHeight],
-                radius: 50,
-                segments: 100
-            });
+            // Create a camera and set the position
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
 
-            // Generate Hole Geometry
-            const hole = new CSG.Cylinder({
-                start: [0, 0, -1], // Slightly below the snowflake bottom
-                end: [0, 0, extrusionHeight + 1], // Slightly above the snowflake top
-                radius: circleRadius,
-                segments: 32,
-            });
+            // Create a hexagon geometry and extrude it to 3D
+            const hexagonGeometry = generateHexagonGeometry(10);  // Hexagon radius = 10
+            const hexagonMesh = new THREE.Mesh(extrudeHexagon(hexagonGeometry, 5), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
 
-            // Perform Subtraction
-            const snowflakeWithHole = snowflake.subtract(hole);
+            // Add the hexagon mesh to the scene
+            scene.add(hexagonMesh);
 
-            // Export to OBJ
-            const objData = snowflakeWithHole.toOBJ();
-            const blob = new Blob([objData], { type: "text/plain" });
-            const link = document.createElement("a");
-            link.download = "snowflake_with_hole.obj";
+            // Create a WebGL renderer
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Render the scene
+            renderer.render(scene, camera);
+
+            // Export the model to OBJ
+            const exporter = new THREE.OBJExporter();
+            const objData = exporter.parse(hexagonMesh);
+
+            // Download the OBJ file
+            const blob = new Blob([objData], { type: 'application/octet-stream' });
+            const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
+            link.download = 'hexagon.obj';
             link.click();
         }
-		
+
     </script>
 </body>
 </html>
