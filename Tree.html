@@ -19,17 +19,17 @@
     <div id="controls">
         <h3>Hexagonal Cone Parameters</h3>
         <label for="numBodies">Number of Bodies:</label>
-        <input type="number" id="numBodies" value="6" min="1" max="100" step="1"><br>
+        <input type="number" id="numBodies" value="15" min="1" max="100" step="1"><br>
         <label for="bodyHeight">Body Height:</label>
-        <input type="number" id="bodyHeight" value="4" min="1" max="100" step="1"><br>
+        <input type="number" id="bodyHeight" value="3" min="1" max="100" step="1"><br>
         <label for="pileBaseDiameter">Pile Base Diameter:</label>
-        <input type="number" id="pileBaseDiameter" value="40" min="1" max="50" step="0.1"><br>
+        <input type="number" id="pileBaseDiameter" value="60" min="1" max="50" step="0.1"><br>
         <label for="pileTopDiameter">Pile Top Diameter:</label>
         <input type="number" id="pileTopDiameter" value="20" min="1" max="50" step="0.1"><br>
         <label for="shrinkFactor">Shrink Factor:</label>
-        <input type="number" id="shrinkFactor" value="1.2" min="0" max="1" step="0.01"><br>
+        <input type="number" id="shrinkFactor" value="0.5" min="0" max="1" step="0.01"><br>
         <label for="segments">Segments (Number of Sides):</label>
-        <input type="number" id="segments" value="6" min="3" max="12" step="1"><br>
+        <input type="number" id="segments" value="9" min="3" max="12" step="1"><br>
         <label for="holeDiameter">Hole Diameter:</label>
         <input type="number" id="holeDiameter" value="6" min="1" max="50" step="0.1"><br>
         <button id="update">Update</button><br>
@@ -127,18 +127,27 @@
             const baseCircleGeometry = new THREE.CylinderGeometry(baseCircleDiameter / 2, baseCircleDiameter / 2, baseCircleHeight, 32);
             const baseCircleMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: false });
             const baseCircle = new THREE.Mesh(baseCircleGeometry, baseCircleMaterial);
-            baseCircle.position.y = -baseCircleHeight / 2 - bodyHeight * numBodies;
+            baseCircle.position.y = -baseCircleHeight / 2 - (bodyHeight * numBodies / 4);
             scene.add(baseCircle);
             shapes.push(baseCircle);
 
             const centerCylinderDiameter = holeDiameter - 1.3;
-            const centerCylinderHeight = numBodies * bodyHeight + 3;
+            const centerCylinderHeight = numBodies * bodyHeight + 15;
             const centerCylinderGeometry = new THREE.CylinderGeometry(centerCylinderDiameter / 2, centerCylinderDiameter / 2, centerCylinderHeight, 32);
             const centerCylinderMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: false });
             const centerCylinder = new THREE.Mesh(centerCylinderGeometry, centerCylinderMaterial);
-            centerCylinder.position.y = centerCylinderHeight / 2 - baseCircleHeight / 2 - bodyHeight * numBodies;
+            centerCylinder.position.y = centerCylinderHeight / 2 - baseCircleHeight / 2 - (bodyHeight * numBodies / 4);
             scene.add(centerCylinder);
             shapes.push(centerCylinder);
+			
+			const centerCylinderDiameter2 = holeDiameter + 3;
+            const centerCylinderHeight2 = 5;
+            const centerCylinderGeometry2 = new THREE.CylinderGeometry(centerCylinderDiameter2 / 2, centerCylinderDiameter2 / 2, centerCylinderHeight2, 32);
+            const centerCylinderMaterial2 = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: false });
+            const centerCylinder2 = new THREE.Mesh(centerCylinderGeometry2, centerCylinderMaterial2);
+            centerCylinder2.position.y = -baseCircleHeight / 2 - (bodyHeight * numBodies / 4) + 2;
+            scene.add(centerCylinder2);
+            shapes.push(centerCylinder2);
         }
 
         function animate() {
